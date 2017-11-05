@@ -5,12 +5,6 @@ library(dplyr)
 #Emma Remy
 #Spring 2016
 
-#figure out datasets
-#put on server
-
-#click to find out more about this volcano
-
-
 # Reading in data
 EL <- read.csv("./GVP_Eruption_Results_latest.csv")
 Volcanoes <- read.csv("./GVP_Volcano_List_latest.csv")
@@ -31,7 +25,7 @@ EL.conf<-
   filter(Duration>=0)
 EL.conf <- EL.conf[,-c(23,24)]
 
-# Combining data with information about volcanoes
+# Combining eruption data with information about volcanoes
 comb.EL <- 
   EL.conf %>%
   inner_join(Volcanoes, by="Volcano.Number") %>%
@@ -68,6 +62,7 @@ server<-function(input, output, session){
   
   # Adds markers to map
   # and ensures that they are cleared when reloading
+  # (reloads whenever bounds on map window change)
   observe({
     volWithCircles <- data.frame(volInBounds())
     leafletProxy("map", data=volWithCircles) %>%
@@ -93,7 +88,7 @@ server<-function(input, output, session){
       addPopups(lng, lat, popup=content)
   }
   
-  # Observing clicks
+  # Observing clicks and generating popups
   observe({
     leafletProxy("map") %>% clearPopups()
     event <- input$map_marker_click
@@ -108,8 +103,14 @@ server<-function(input, output, session){
 
 #UI side
 ui <- bootstrapPage(
+  
+  # To get the app to fill the entire page
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+  
+  # The map
   leafletOutput("map", width="100%", height="100%"),
+  
+  # Description
   absolutePanel(top = 10, right = 50,
                 h3("Volcano explorer", align = "right"),
                 p("Each circle represents a volcano.", br(),
@@ -117,6 +118,8 @@ ui <- bootstrapPage(
                 "the volcanoes of the world.",
                 align = "right")
   ),
+  
+  # Credits
   absolutePanel(bottom=10, right = 10,
                 p("Global Volcanism Program, 2013.
                   Volcanoes of the World, v. 4.4.3. Venzke,
